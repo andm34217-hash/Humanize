@@ -1,47 +1,92 @@
-<!DOCTYPE html>
+<!doctype html>
 <html lang="ro">
 <head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Humanize Text AI</title>
-    <link rel="stylesheet" href="style.css">
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width,initial-scale=1" />
+  <title>Humanizer • Rescrie natural</title>
+
+  <!-- link către fișierul de stil (vezi style.css) -->
+  <link rel="stylesheet" href="style.css">
+
+  <!-- optional: icon/font -->
+  <link rel="preconnect" href="https://fonts.gstatic.com">
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;600;700&display=swap" rel="stylesheet">
 </head>
 <body>
+  <div id="app" class="page">
+    <aside class="sidebar">
+      <div class="brand">Humanizer</div>
+      <nav class="menu">
+        <button data-action="rewrite" class="menu-btn">Rescrie (student)</button>
+        <button data-action="detect" class="menu-btn">Detectează AI</button>
+        <button data-action="summary" class="menu-btn">Rezumat pe puncte</button>
+        <button data-action="simplify" class="menu-btn">Simplifică</button>
+        <button data-action="extend" class="menu-btn">Extinde</button>
+      </nav>
 
-    <header>
-        <h1>Humanize Text AI</h1>
-        <button id="themeToggle">🌙</button>
-    </header>
+      <div class="options">
+        <label><input id="useLocal" type="checkbox"> Folosește model local (Ollama)</label>
+        <label><input id="autoSummary" type="checkbox"> Rezumat automat</label>
+        <label><input id="shortBullets" type="checkbox"> Fraze scurte</label>
+      </div>
 
-    <main>
-        <div class="container">
+      <div class="theme-toggle">
+        <button id="toggleTheme">Light / Dark</button>
+      </div>
+    </aside>
 
-            <textarea id="inputText" placeholder="Scrie textul aici..."></textarea>
-
-            <div class="buttons">
-                <button id="rewriteBtn">Rescrie inteligent</button>
-                <button id="summaryBtn">Rezumat automat</button>
-                <button id="aiScoreBtn">Detectează AI</button>
-                <button id="exportPdfBtn">Export PDF</button>
-            </div>
-
-            <div class="output">
-                <h3>Rezultat</h3>
-                <textarea id="outputText" readonly></textarea>
-            </div>
-
-            <div class="scoreBox">
-                <label>Probabilitate AI:</label>
-                <div class="bar">
-                    <div id="scoreBar"></div>
-                </div>
-                <span id="scoreText">0%</span>
-            </div>
-
+    <main class="main">
+      <header class="top">
+        <h1>Humanizer</h1>
+        <div class="top-actions">
+          <button id="applyAll" class="btn primary">Aplică: Rescrie + Rezumă</button>
+          <button id="exportPdf" class="btn outline">Export PDF</button>
         </div>
+      </header>
+
+      <section class="pane">
+        <label class="label">Text de intrare</label>
+        <textarea id="inputText" placeholder="Lipește textul aici..." rows="8"></textarea>
+
+        <div class="controls">
+          <button id="btnDetect" class="btn">Detectează AI</button>
+          <button id="btnRewrite" class="btn">Rescrie inteligent</button>
+          <button id="btnClear" class="btn">Șterge</button>
+          <button id="btnPlans" class="btn outline">Planuri & Prețuri</button>
+        </div>
+
+        <div class="result-grid">
+          <div class="result-col">
+            <h3>Text rezultat</h3>
+            <textarea id="outputText" rows="10" readonly placeholder="Rezultatul va apărea aici..."></textarea>
+            <div class="result-actions">
+              <button id="copyBtn" class="btn">Copiază</button>
+              <button id="downloadBtn" class="btn">Descarcă</button>
+            </div>
+          </div>
+
+          <aside class="side-col">
+            <h4>Rezumat (puncte)</h4>
+            <div id="bullets" class="bullets">Nu s-a găsit rezumat.</div>
+
+            <h4>Scor AI</h4>
+            <div class="score-wrap">
+              <div id="progress" class="progress">
+                <div id="progressFill" class="progress-fill" style="width:0%"></div>
+              </div>
+              <div class="score-legend"><span id="scorePct">0%</span></div>
+            </div>
+          </aside>
+        </div>
+      </section>
+
+      <footer class="footer">
+        <small>© Humanizer • 2025 — versiunea V21-INTELLIGENT</small>
+        <div id="status" class="status">Model local: <span id="localStatus">deconectat</span></div>
+      </footer>
     </main>
+  </div>
 
-    <script src="script.js"></script>
-
+  <script src="script.js" defer></script>
 </body>
 </html>
