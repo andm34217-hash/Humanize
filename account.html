@@ -1,0 +1,36 @@
+<!doctype html>
+<html lang="ro"><head>
+<meta charset="utf-8"/><meta name="viewport" content="width=device-width,initial-scale=1"/>
+<title>Contul meu • Humanizer</title>
+<link href="style.css" rel="stylesheet"/>
+</head><body>
+  <div class="account-box">
+    <h2>Contul meu</h2>
+    <p><b>Email:</b> <span id="uEmail">—</span></p>
+    <p><b>Plan:</b> <span id="uPlan">—</span></p>
+    <p><b>Rescrieri azi:</b> <span id="uUsed">0</span></p>
+
+    <div style="display:flex;gap:10px;margin-top:12px">
+      <a href="pricing.html" class="btn ghost">Upgrade</a>
+      <button id="logoutBtn" class="btn primary">Logout</button>
+    </div>
+  </div>
+
+<script src="auth.js"></script>
+<script>
+function loadAccount(){
+  const userEmail = localStorage.getItem('currentUser')
+  if(!userEmail) { window.location.href='login.html'; return }
+  const users = JSON.parse(localStorage.getItem('users')||'{}')
+  const u = users[userEmail]
+  if(!u) { window.location.href='login.html'; return }
+  document.getElementById('uEmail').textContent = u.email
+  document.getElementById('uPlan').textContent = u.plan
+  document.getElementById('uUsed').textContent = u.creditsUsedToday || 0
+}
+document.getElementById('logoutBtn').addEventListener('click', ()=>{
+  logout()
+})
+loadAccount()
+</script>
+</body></html>

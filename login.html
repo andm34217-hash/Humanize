@@ -1,0 +1,26 @@
+<!doctype html>
+<html lang="ro"><head>
+<meta charset="utf-8"/><meta name="viewport" content="width=device-width,initial-scale=1"/>
+<title>Login • Humanizer</title>
+<link href="style.css" rel="stylesheet"/>
+</head><body>
+  <div class="auth-container">
+    <h2>Autentificare</h2>
+    <input id="email" placeholder="Email" type="email"/>
+    <input id="password" placeholder="Parolă" type="password"/>
+    <button id="loginBtn" class="btn primary">Loghează-te</button>
+    <p>Nu ai cont? <a href="signup.html">Creează cont</a></p>
+  </div>
+
+<script src="auth.js"></script>
+<script>
+document.getElementById('loginBtn').addEventListener('click', ()=>{
+  const email = document.getElementById('email').value.trim()
+  const pass = document.getElementById('password').value.trim()
+  const res = login(email, pass)
+  if(!res.success) { alert(res.message); return }
+  alert(res.message)
+  window.location.href = 'account.html'
+})
+</script>
+</body></html>

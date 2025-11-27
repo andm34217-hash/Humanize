@@ -1,0 +1,47 @@
+<!DOCTYPE html>
+<html lang="ro">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Humanize Text AI</title>
+    <link rel="stylesheet" href="style.css">
+</head>
+<body>
+
+    <header>
+        <h1>Humanize Text AI</h1>
+        <button id="themeToggle">🌙</button>
+    </header>
+
+    <main>
+        <div class="container">
+
+            <textarea id="inputText" placeholder="Scrie textul aici..."></textarea>
+
+            <div class="buttons">
+                <button id="rewriteBtn">Rescrie inteligent</button>
+                <button id="summaryBtn">Rezumat automat</button>
+                <button id="aiScoreBtn">Detectează AI</button>
+                <button id="exportPdfBtn">Export PDF</button>
+            </div>
+
+            <div class="output">
+                <h3>Rezultat</h3>
+                <textarea id="outputText" readonly></textarea>
+            </div>
+
+            <div class="scoreBox">
+                <label>Probabilitate AI:</label>
+                <div class="bar">
+                    <div id="scoreBar"></div>
+                </div>
+                <span id="scoreText">0%</span>
+            </div>
+
+        </div>
+    </main>
+
+    <script src="script.js"></script>
+
+</body>
+</html>

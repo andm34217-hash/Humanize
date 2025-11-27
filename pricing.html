@@ -1,0 +1,48 @@
+<!doctype html>
+<html lang="ro">
+<head>
+  <meta charset="utf-8"/>
+  <meta name="viewport" content="width=device-width,initial-scale=1"/>
+  <title>Planuri • Humanizer</title>
+  <link href="style.css" rel="stylesheet"/>
+</head>
+<body>
+  <header class="site-header">
+    <div class="header-inner">
+      <div class="brand"><div class="logo-dot"></div><div class="brand-text">Humanizer</div></div>
+      <nav class="nav-right"><a href="index.html" class="nav-link">Acasă</a><a href="login.html" class="nav-link">Autentificare</a></nav>
+    </div>
+  </header>
+
+  <main class="main" style="grid-template-columns:1fr;max-width:900px;margin:24px auto">
+    <section class="card">
+      <h2>Planuri & Prețuri</h2>
+      <div style="display:flex;gap:14px;flex-wrap:wrap;margin-top:14px">
+        <div class="account-box card" style="flex:1;min-width:220px;padding:16px">
+          <h3>Free</h3><p>5 rescrieri/zi • Fără plată</p>
+          <button onclick="activatePlan('free')" class="btn ghost">Rămâi pe Free</button>
+        </div>
+        <div class="account-box card" style="flex:1;min-width:220px;padding:16px">
+          <h3>Premium</h3><p>100 rescrieri/zi • 5€/lună (simulat)</p>
+          <button onclick="activatePlan('premium')" class="btn primary">Activează Premium</button>
+        </div>
+        <div class="account-box card" style="flex:1;min-width:220px;padding:16px">
+          <h3>Pro</h3><p>Rescrieri nelimitate • 12€/lună (simulat)</p>
+          <button onclick="activatePlan('pro')" class="btn accent">Activează Pro</button>
+        </div>
+      </div>
+    </section>
+  </main>
+
+<script>
+function activatePlan(plan){
+  const user = JSON.parse(localStorage.getItem('user')) || {plan:'free',creditsUsedToday:0,lastReset:new Date().toDateString()}
+  user.plan = plan
+  user.creditsUsedToday = 0
+  localStorage.setItem('user', JSON.stringify(user))
+  alert('Plan activat: '+plan)
+  window.location.href = 'account.html'
+}
+</script>
+</body>
+</html>

@@ -1,0 +1,24 @@
+<!doctype html>
+<html lang="ro"><head><meta charset="utf-8"/><meta name="viewport" content="width=device-width,initial-scale=1"/><title>Plată reușită</title><link href="style.css" rel="stylesheet"/></head><body>
+  <div class="card" style="max-width:700px;margin:60px auto;text-align:center">
+    <h2>Plată confirmată</h2>
+    <p>Mulțumim! Planul tău a fost activat.</p>
+    <button onclick="window.location='account.html'" class="btn primary">Mergi la cont</button>
+  </div>
+<script src="auth.js"></script>
+<script>
+(function(){
+  const params = new URLSearchParams(location.search)
+  const plan = params.get('plan') || 'premium'
+  const userEmail = localStorage.getItem('currentUser')
+  if(userEmail){
+    const users = JSON.parse(localStorage.getItem('users')||'{}')
+    users[userEmail] = users[userEmail] || {}
+    users[userEmail].plan = plan
+    users[userEmail].creditsUsedToday = 0
+    localStorage.setItem('users', JSON.stringify(users))
+    alert('Plan activat: '+plan)
+  }
+})()
+</script>
+</body></html>
