@@ -1,49 +1,72 @@
-// /api/groq.js
 export default async function handler(req, res) {
-  if (req.method !== "POST") {
-    return res.status(405).json({ error: "Method not allowed" });
-  }
-
   try {
     const { text, mode } = req.body;
 
-    if (!text) {
+    if (!text || text.trim().length === 0) {
       return res.status(400).json({ error: "Missing text" });
     }
 
-    const GROQ_API_KEY = process.env.GROQ_API_KEY;
-    if (!GROQ_API_KEY) {
+    const apiKey = process.env.GROQ_API_KEY;
+    if (!apiKey) {
       return res.status(500).json({ error: "Missing GROQ API key" });
     }
 
-    const model =
-      mode === "summary"
-        ? "mixtral-8x7b-32768"
-        : "llama3-70b-8192";
+    let systemPrompt = "";
 
-    const prompt =
-      mode === "summary"
-        ? `Rezuma într-o listă de 5–8 puncte informațiile esențiale:\n\n${text}`
-        : `Rescrie textul într-un stil natural, uman, evitând frazele lungi și formulările robotice. Păstrează sensul original:\n\n${text}`;
+    // Mode = rescriere, detectare, rezumat
+    switch (mode) {
+      case "rewrite":
+        systemPrompt =
+          "Rescrie textul într-un stil natural de student român, clar, coerent, fără expresii artificiale, fără repetiții și fără formulări tehnice sau specifice AI. Evită introducerile de tipul 'În esență', 'Pe scurt', 'În realitate'. Menține sensul original, dar exprimă-l într-o manieră umană, simplă și fluentă.";
+        break;
 
-    const groqRes = await fetch("https://api.groq.com/openai/v1/chat/completions", {
+      case "summary":
+        systemPrompt =
+          "Extrage cele mai importante idei din text și oferă-le sub forma unei liste cu bullet points. Fii concis, păstrează sensul original.";
+        break;
+
+      case "detect":
+        systemPrompt =
+          "Analizează dacă textul pare generat de un AI. Oferă un scor între 0 și 100 în format JSON: {score: numar}. Nu adăuga explicații.";
+        break;
+
+      default:
+        systemPrompt = "Ești un asistent AI util.";
+    }
+
+    const response = await fetch("https://api.groq.com/openai/v1/chat/completions", {
       method: "POST",
       headers: {
         "Content-Type": "application/json",
-        Authorization: `Bearer ${GROQ_API_KEY}`,
+        Authorization: `Bearer ${apiKey}`
       },
       body: JSON.stringify({
-        model,
-        messages: [{ role: "user", content: prompt }],
-      }),
+        model: "llama-3.1-70b-versatile",
+        messages: [
+          { role: "system", content: systemPrompt },
+          { role: "user", content: text }
+        ],
+        temperature: 0.2
+      })
     });
 
-    const data = await groqRes.json();
+    const data = await response.json();
+
+    if (mode === "detect") {
+      try {
+        const parsed = JSON.parse(data.choices?.[0]?.message?.content);
+        return res.status(200).json({ score: parsed.score });
+      } catch {
+        return res.status(200).json({ score: 50 }); // fallback
+      }
+    }
 
     return res.status(200).json({
-      result: data.choices?.[0]?.message?.content || "Eroare în generare",
+      result: data.choices?.[0]?.message?.content || ""
     });
+
   } catch (err) {
-    return res.status(500).json({ error: err.message });
+    console.error(err);
+    return res.status(500).json({ error: "Server error" });
   }
 }
