@@ -1,35 +1,52 @@
-// =============================================================
-//   Forțăm Vercel să folosească Node.js Runtime (NU Edge)
-// =============================================================
-export const config = {
-  runtime: "nodejs"
-};
-
 import Groq from "groq-sdk";
 
-// =============================================================
-//   GROQ CLIENT
-// =============================================================
-const client = new Groq({
-  apiKey: process.env.GROQ_API_KEY,
-});
+export default async function handler(req, res) {
+  if (req.method !== "POST") {
+    return res.status(405).json({ error: "Method not allowed" });
+  }
 
-// =============================================================
-//   REWRITE FUNCTION
-// =============================================================
-async function rewriteText(text) {
+  try {
+    const { text, mode } = req.body;
+
+    if (!text || !mode) {
+      return res.status(400).json({ error: "Missing input text or mode." });
+    }
+
+    const client = new Groq({ apiKey: process.env.GROQ_API_KEY });
+    if (!process.env.GROQ_API_KEY) {
+      return res.status(500).json({ error: "Missing GROQ_API_KEY" });
+    }
+
+    let result;
+    if (mode === "rewrite") {
+      result = await rewriteText(client, text);
+    } else if (mode === "summary") {
+      result = await summarizeText(client, text);
+    } else {
+      return res.status(400).json({ error: "Invalid mode" });
+    }
+
+    return res.status(200).json({ result });
+  } catch (error) {
+    console.error("GROQ ERROR:", error);
+    return res.status(500).json({ error: error.message || "Server error" });
+  }
+}
+
+/* ---------------------------------------- */
+/* RESCRIE TEXT                             */
+/* ---------------------------------------- */
+async function rewriteText(client, text) {
   const prompt = `
-Rescrie următorul text într-un stil uman, natural, fără cuvinte pompoase,
-fără fraze lungi, fără ton exagerat. Să pară scris de un student normal.
+Rescrie următorul text într-un mod natural, uman și fluent.
+Păstrează sensul, îmbunătățește claritatea și fă-l ușor de citit.
 
 Text:
 ${text}
-
-Rescriere:
-`;
+  `;
 
   const response = await client.chat.completions.create({
-    model: "llama3-8b-instant",
+    model: "llama3-8b-8192",
     messages: [
       { role: "system", content: "Ești un asistent care rescrie text în mod natural și uman." },
       { role: "user", content: prompt }
@@ -38,66 +55,30 @@ Rescriere:
     temperature: 0.7,
   });
 
-  return response.choices?.[0]?.message?.content?.trim();
+  return response.choices[0]?.message?.content || "Eroare: răspuns invalid.";
 }
 
-// =============================================================
-//   SUMMARY FUNCTION
-// =============================================================
-async function summarizeText(text) {
+/* ---------------------------------------- */
+/* REZUMĂ TEXT                               */
+/* ---------------------------------------- */
+async function summarizeText(client, text) {
   const prompt = `
-Fă un rezumat pe puncte, foarte clar și simplu, al următorului text:
+Fă un rezumat scurt, clar și ușor de înțeles.
+Folosește bullet points dacă ajută.
 
+Text:
 ${text}
-
-Rezumat:
-`;
+  `;
 
   const response = await client.chat.completions.create({
-    model: "llama3-8b-instant",
+    model: "llama3-8b-8192",
     messages: [
-      { role: "system", content: "Faci rezumate în stil simplu, pe puncte." },
+      { role: "system", content: "Ești un asistent care face rezumate concise." },
       { role: "user", content: prompt }
     ],
     max_tokens: 300,
     temperature: 0.3,
   });
 
-  return response.choices?.[0]?.message?.content?.trim();
-}
-
-// =============================================================
-//   MAIN API HANDLER
-// =============================================================
-export default async function handler(req, res) {
-  try {
-    if (req.method !== "POST") {
-      return res.status(405).json({ error: "Method not allowed" });
-    }
-
-    const { text, mode } = req.body;
-
-    if (!text) {
-      return res.status(400).json({ error: "Missing text input" });
-    }
-
-    let result;
-
-    if (mode === "rewrite") {
-      result = await rewriteText(text);
-    } else if (mode === "summary") {
-      result = await summarizeText(text);
-    } else {
-      return res.status(400).json({ error: "Invalid mode" });
-    }
-
-    res.status(200).json({ result });
-
-  } catch (err) {
-    console.error("GROQ ERROR:", err.response?.data || err.message);
-    res.status(500).json({
-      error: "Groq API returned an error",
-      details: err.response?.data || err.message
-    });
-  }
+  return response.choices[0]?.message?.content || "Eroare: răspuns invalid.";
 }
