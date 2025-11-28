@@ -1,31 +1,32 @@
-
-/* ===========================
-   THEME SYSTEM
-=========================== */
-const html = document.documentElement;
-const toggleTheme = document.getElementById("toggleTheme");
-
-function applyTheme(theme) {
-  if (theme === "dark") {
-    html.classList.add("dark");
-    localStorage.setItem("theme", "dark");
-  } else {
-    html.classList.remove("dark");
-    localStorage.setItem("theme", "light");
-  }
-}
-
-// Load saved theme
-applyTheme(localStorage.getItem("theme") || "light");
-
-// Toggle theme
-toggleTheme.onclick = () => {
-  const newTheme = html.classList.contains("dark") ? "light" : "dark";
-  applyTheme(newTheme);
-};
-
 document.addEventListener("DOMContentLoaded", () => {
 
+  /* =============================
+      THEME SYSTEM
+  ============================== */
+
+  const html = document.documentElement;
+  const toggleTheme = document.getElementById("toggleTheme");
+
+  function applyTheme(theme) {
+    if (theme === "dark") {
+      html.classList.add("dark");
+      localStorage.setItem("theme", "dark");
+    } else {
+      html.classList.remove("dark");
+      localStorage.setItem("theme", "light");
+    }
+  }
+
+  applyTheme(localStorage.getItem("theme") || "light");
+
+  toggleTheme.onclick = () => {
+    const newTheme = html.classList.contains("dark") ? "light" : "dark";
+    applyTheme(newTheme);
+  };
+
+  /* =============================
+      ELEMENTS
+  ============================== */
   const input = document.getElementById("inputText");
   const output = document.getElementById("outputText");
   const bullets = document.getElementById("bullets");
@@ -59,61 +60,66 @@ document.addEventListener("DOMContentLoaded", () => {
     return data.result;
   }
 
+  /* =============================
+      AI SAFE REWRITE
+  ============================== */
   btnRewrite.onclick = async () => {
-  if (!input.value.trim()) return alert("Introdu text!");
-  output.value = "Se rescrie textul...";
+    if (!input.value.trim()) return alert("Introdu text!");
+    output.value = "Se rescrie textul...";
 
-  try {
-    let text = input.value.trim();
-    let finalText = "";
-    let aiScore = 100;
+    try {
+      let text = input.value.trim();
+      let finalText = "";
+      let aiScore = 100;
 
-    for (let i = 0; i < 5; i++) {
-      // 1. Rescriem textul
-      const rewritten = await callGroq("rewrite", text);
+      for (let i = 0; i < 5; i++) {
+        const rewritten = await callGroq("rewrite", text);
+        const detection = await callGroq("detect", rewritten);
+        aiScore = detection.ai_probability;
 
-      // 2. Detectăm dacă pare AI
-      const detection = await callGroq("detect", rewritten);
-      aiScore = detection.ai_probability;
+        if (aiScore <= 25) {
+          finalText = rewritten;
+          break;
+        }
 
-      // 3. Dacă e bun (sub 25%), oprim
-      if (aiScore <= 25) {
+        text = rewritten;
         finalText = rewritten;
-        break;
+        output.value = `Încercare ${i + 1}/5 → scor AI: ${aiScore}%...`;
       }
 
-      // 4. Dacă nu, încercăm din nou cu versiunea rescrisă
-      text = rewritten;
-      finalText = rewritten;
+      output.value = finalText;
+      setScore(aiScore);
 
-      output.value = `Încercare #${i + 1} → scor AI: ${aiScore}%... încearcă din nou...`;
+    } catch (e) {
+      output.value = "Eroare: " + e.message;
     }
+  };
 
-    // Afișăm textul final
-    output.value = finalText;
-    setScore(aiScore);
-
-  } catch (e) {
-    output.value = "Eroare: " + e.message;
-  }
-};
-
-
+  /* =============================
+      SUMMARY
+  ============================== */
   btnSummary.onclick = async () => {
     if (!input.value.trim()) return alert("Introdu text!");
     bullets.innerHTML = "Se generează rezumat...";
+
     try {
       const r = await callGroq("summary", input.value.trim());
       bullets.innerHTML =
         "<ul>" +
         r.split("\n").filter(x => x.trim()).map(x => `<li>${x}</li>`).join("") +
         "</ul>";
-    } catch (e) { bullets.innerHTML = "Eroare la rezumat."; }
+    } catch (e) {
+      bullets.innerHTML = "Eroare la rezumat.";
+    }
   };
 
+  /* =============================
+      DETECT AI
+  ============================== */
   btnDetect.onclick = async () => {
     if (!input.value.trim()) return alert("Introdu text!");
     output.value = "Se detectează AI...";
+
     try {
       const r = await callGroq("detect", input.value.trim());
       setScore(r.ai_probability);
@@ -124,6 +130,9 @@ document.addEventListener("DOMContentLoaded", () => {
     }
   };
 
+  /* =============================
+      TOOLS
+  ============================== */
   btnClear.onclick = () => {
     input.value = "";
     output.value = "";
@@ -134,7 +143,7 @@ document.addEventListener("DOMContentLoaded", () => {
   copyBtn.onclick = async () => {
     await navigator.clipboard.writeText(output.value);
     copyBtn.textContent = "Copiat!";
-    setTimeout(() => copyBtn.textContent = "Copiază", 1500);
+    setTimeout(() => (copyBtn.textContent = "Copiază"), 1500);
   };
 
   downloadBtn.onclick = () => {
@@ -147,7 +156,9 @@ document.addEventListener("DOMContentLoaded", () => {
     URL.revokeObjectURL(url);
   };
 
-  // MENIU LATERAL - conectare
+  /* =============================
+      Sidebar buttons
+  ============================== */
   document.querySelectorAll(".menu-btn").forEach(btn => {
     btn.onclick = () => {
       const action = btn.dataset.action;
@@ -158,5 +169,3 @@ document.addEventListener("DOMContentLoaded", () => {
   });
 
 });
-
-
