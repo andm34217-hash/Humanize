@@ -1,15 +1,15 @@
-// Forțăm Node.js runtime pe Vercel
 export const config = { runtime: "nodejs" };
 
 import Groq from "groq-sdk";
 
-// API: /api/groq
+// /api/groq – endpoint unic pentru rewrite / summary / detect
 export default async function handler(req, res) {
   if (req.method !== "POST")
     return res.status(405).json({ error: "Method not allowed" });
 
   try {
     const { text, mode } = req.body;
+
     if (!text || !mode)
       return res.status(400).json({ error: "Missing text or mode" });
 
@@ -18,19 +18,22 @@ export default async function handler(req, res) {
 
     const client = new Groq({ apiKey: process.env.GROQ_API_KEY });
 
-    if (mode === "rewrite") return ok(res, await rewrite(client, text));
-    if (mode === "summary") return ok(res, await summary(client, text));
+    if (mode === "rewrite") return ok(res, await rewriteText(client, text));
+    if (mode === "summary") return ok(res, await summaryText(client, text));
     if (mode === "detect") return ok(res, await detectAI(client, text));
 
-    // dezactivăm funcții neimplementate
-    if (mode === "simplify") return res.status(400).json({ error: "Funcția 'Simplifică' nu este disponibilă." });
-    if (mode === "extend") return res.status(400).json({ error: "Funcția 'Extinde' nu este disponibilă." });
+    // funcțiile neimplementate
+    if (mode === "simplify")
+      return res.status(400).json({ error: "Funcția «Simplifică» nu este disponibilă." });
+
+    if (mode === "extend")
+      return res.status(400).json({ error: "Funcția «Extinde» nu este disponibilă." });
 
     return res.status(400).json({ error: "Invalid mode" });
 
   } catch (err) {
-    console.error("GROQ SERVER ERROR:", err);
-    return res.status(500).json({ error: err.message || "Server error" });
+    console.error("GROQ ERROR:", err);
+    return res.status(500).json({ error: err.message });
   }
 }
 
@@ -38,11 +41,9 @@ function ok(res, result) {
   return res.status(200).json({ result });
 }
 
-/* ============================
-   RESCRIE (Rewrite)
-============================ */
-async function rewrite(client, text) {
-  const response = await client.chat.completions.create({
+/* -------- RESCRIE -------- */
+async function rewriteText(client, text) {
+  const r = await client.chat.completions.create({
     model: "llama-3.3-8b-instant",
     messages: [
       { role: "system", content: "Rescrie textul natural, clar și uman." },
@@ -50,42 +51,35 @@ async function rewrite(client, text) {
     ],
     temperature: 0.7
   });
-
-  return response.choices[0].message.content.trim();
+  return r.choices[0].message.content.trim();
 }
 
-/* ============================
-   SUMMARY (Rezumat)
-============================ */
-async function summary(client, text) {
-  const response = await client.chat.completions.create({
+/* -------- REZUMAT -------- */
+async function summaryText(client, text) {
+  const r = await client.chat.completions.create({
     model: "llama-3.3-8b-instant",
     messages: [
       { role: "system", content: "Generează un rezumat clar, pe puncte." },
       { role: "user", content: text }
     ],
-    max_tokens: 400,
-    temperature: 0.2
+    temperature: 0.2,
+    max_tokens: 400
   });
-
-  return response.choices[0].message.content.trim();
+  return r.choices[0].message.content.trim();
 }
 
-/* ============================
-   DETECTARE AI REALĂ
-============================ */
+/* -------- DETECTARE AI -------- */
 async function detectAI(client, text) {
-  const response = await client.chat.completions.create({
+  const r = await client.chat.completions.create({
     model: "llama-3.3-70b-versatile",
     messages: [
       {
         role: "system",
         content: `
-Ești un detector AI. Analizezi textul pentru a estima probabilitatea să fie generat de AI.
-Returnează STRICT un JSON:
+Ești un detector AI. Analizezi textul și returnezi STRICT JSON:
 {
-  "ai_probability": number (0-100),
-  "explanation": "scurt text explicativ"
+  "ai_probability": 0-100,
+  "explanation": "text scurt explicativ"
 }`
       },
       { role: "user", content: text }
@@ -94,7 +88,7 @@ Returnează STRICT un JSON:
     max_tokens: 300
   });
 
-  const raw = response.choices[0].message.content.trim();
+  const raw = r.choices[0].message.content.trim();
 
   try {
     const json = JSON.parse(raw);
