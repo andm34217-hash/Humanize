@@ -1,3 +1,7 @@
+export const config = {
+  runtime: "nodejs"
+};
+
 import Groq from "groq-sdk";
 
 // =====================================================================
@@ -8,7 +12,7 @@ const client = new Groq({
 });
 
 // =====================================================================
-//   REWRITE FUNCTION (rescriere inteligentă + humanizare)
+//   REWRITE FUNCTION
 // =====================================================================
 async function rewriteText(text) {
   const prompt = `
@@ -22,7 +26,7 @@ Rescriere:
 `;
 
   const response = await client.chat.completions.create({
-    model: "llama-3.1-8b-instant",   // MODEL ACTIV ȘI RAPID
+    model: "llama3-8b-instant",
     messages: [
       { role: "system", content: "Ești un asistent care rescrie text în mod natural și uman." },
       { role: "user", content: prompt }
@@ -35,7 +39,7 @@ Rescriere:
 }
 
 // =====================================================================
-//   SUMMARY FUNCTION (rezumat pe puncte)
+//   SUMMARY FUNCTION
 // =====================================================================
 async function summarizeText(text) {
   const prompt = `
@@ -47,7 +51,7 @@ Rezumat:
 `;
 
   const response = await client.chat.completions.create({
-    model: "llama-3.1-8b-instant",
+    model: "llama3-8b-instant",
     messages: [
       { role: "system", content: "Faci rezumate în stil simplu, pe puncte." },
       { role: "user", content: prompt }
