@@ -2,7 +2,6 @@ export const config = { runtime: "nodejs" };
 
 import Groq from "groq-sdk";
 
-// /api/groq – endpoint unic pentru rewrite / summary / detect
 export default async function handler(req, res) {
   if (req.method !== "POST")
     return res.status(405).json({ error: "Method not allowed" });
@@ -13,88 +12,88 @@ export default async function handler(req, res) {
     if (!text || !mode)
       return res.status(400).json({ error: "Missing text or mode" });
 
-    if (!process.env.GROQ_API_KEY)
-      return res.status(500).json({ error: "Missing GROQ_API_KEY" });
-
     const client = new Groq({ apiKey: process.env.GROQ_API_KEY });
 
-    if (mode === "rewrite") return ok(res, await rewriteText(client, text));
-    if (mode === "summary") return ok(res, await summaryText(client, text));
-    if (mode === "detect") return ok(res, await detectAI(client, text));
+    switch (mode) {
+      case "rewrite":
+        return res.status(200).json({
+          result: await rewrite(client, text)
+        });
 
-    // funcțiile neimplementate
-    if (mode === "simplify")
-      return res.status(400).json({ error: "Funcția «Simplifică» nu este disponibilă." });
+      case "summary":
+        return res.status(200).json({
+          result: await summary(client, text)
+        });
 
-    if (mode === "extend")
-      return res.status(400).json({ error: "Funcția «Extinde» nu este disponibilă." });
+      case "detect":
+        return res.status(200).json({
+          result: await detectAI(client, text)
+        });
 
-    return res.status(400).json({ error: "Invalid mode" });
+      default:
+        return res.status(400).json({ error: "Invalid mode" });
+    }
 
   } catch (err) {
-    console.error("GROQ ERROR:", err);
+    console.error("SERVER ERROR:", err);
     return res.status(500).json({ error: err.message });
   }
 }
 
-function ok(res, result) {
-  return res.status(200).json({ result });
-}
-
-/* -------- RESCRIE -------- */
-async function rewriteText(client, text) {
+/* ----------------- RESCRIE ----------------- */
+async function rewrite(client, text) {
   const r = await client.chat.completions.create({
-    model: "llama-3.3-8b-instant",
+    model: "llama-3.1-8b-instant",
     messages: [
-      { role: "system", content: "Rescrie textul natural, clar și uman." },
+      { role: "system", content: "Rescrie textul natural, clar, uman." },
       { role: "user", content: text }
     ],
     temperature: 0.7
   });
+
   return r.choices[0].message.content.trim();
 }
 
-/* -------- REZUMAT -------- */
-async function summaryText(client, text) {
+/* ----------------- REZUMAT ----------------- */
+async function summary(client, text) {
   const r = await client.chat.completions.create({
-    model: "llama-3.3-8b-instant",
+    model: "llama-3.1-8b-instant",
     messages: [
-      { role: "system", content: "Generează un rezumat clar, pe puncte." },
+      { role: "system", content: "Creează un rezumat clar, pe puncte." },
       { role: "user", content: text }
     ],
-    temperature: 0.2,
-    max_tokens: 400
+    max_tokens: 300,
+    temperature: 0.2
   });
+
   return r.choices[0].message.content.trim();
 }
 
-/* -------- DETECTARE AI -------- */
+/* ----------------- DETECTARE AI ----------------- */
 async function detectAI(client, text) {
   const r = await client.chat.completions.create({
-    model: "llama-3.3-70b-versatile",
+    model: "llama-3.1-70b-versatile",
     messages: [
       {
         role: "system",
-        content: `
-Ești un detector AI. Analizezi textul și returnezi STRICT JSON:
+        content: `Analizează textul și întoarce STRICT un JSON:
 {
-  "ai_probability": 0-100,
-  "explanation": "text scurt explicativ"
+  "ai_probability": number 0-100,
+  "explanation": "text scurt"
 }`
       },
       { role: "user", content: text }
     ],
-    temperature: 0.1,
-    max_tokens: 300
+    temperature: 0.1
   });
 
   const raw = r.choices[0].message.content.trim();
 
   try {
-    const json = JSON.parse(raw);
+    const parsed = JSON.parse(raw);
     return {
-      ai_probability: Math.min(100, Math.max(0, Number(json.ai_probability))),
-      explanation: json.explanation || "Fără explicație"
+      ai_probability: Math.max(0, Math.min(100, parsed.ai_probability)),
+      explanation: parsed.explanation || "Fără explicație."
     };
   } catch {
     return {
