@@ -7,6 +7,38 @@
 html,body{height:100%;margin:0;background: linear-gradient(180deg,#07101a 0%, #0f1720 100%);color:var(--text)}
 .page{display:flex;min-height:100vh}
 
+/* ===== THEME SYSTEM ===== */
+:root {
+  --bg: #ffffff;
+  --text: #000000;
+  --card: #f3f3f3;
+  --border: #dddddd;
+}
+
+.dark {
+  --bg: #181818;
+  --text: #f8f8f8;
+  --card: #222;
+  --border: #333;
+}
+
+body {
+  background: var(--bg);
+  color: var(--text);
+  transition: background 0.3s, color 0.3s;
+}
+
+textarea, .side-col, .pane, .menu-btn, .btn {
+  background: var(--card);
+  color: var(--text);
+  border-color: var(--border);
+}
+
+.btn:hover {
+  opacity: 0.85;
+}
+
+
 /* Sidebar */
 .sidebar{width:220px;padding:28px 18px;background:linear-gradient(180deg, rgba(10,14,20,0.6), rgba(6,8,12,0.4));border-right:1px solid rgba(255,255,255,0.02);display:flex;flex-direction:column;gap:18px}
 .brand{font-weight:700;font-size:20px;margin-bottom:6px}
@@ -54,3 +86,4 @@ textarea{width:100%;background:rgba(255,255,255,0.02);border:1px solid rgba(255,
   .menu{flex-direction:row}
   .menu-btn{padding:6px 10px;white-space:nowrap}
 }
+
