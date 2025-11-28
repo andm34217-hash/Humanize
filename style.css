@@ -1,6 +1,5 @@
 :root{
   --bg:#0f1720; --card:#0b1220; --muted:#98a0b0; --accent:#2f7bed; --accent-2:#7c4dff;
-  --surface:#0b1220; --glass: rgba(255,255,255,0.03);
   --text:#e7eefc; --radius:12px;
   font-family: "Inter", system-ui, -apple-system, "Segoe UI", Roboto, "Helvetica Neue", Arial;
 }
@@ -9,18 +8,13 @@ html,body{height:100%;margin:0;background: linear-gradient(180deg,#07101a 0%, #0
 .page{display:flex;min-height:100vh}
 
 /* Sidebar */
-.sidebar{
-  width:220px;padding:28px 18px;background:linear-gradient(180deg, rgba(10,14,20,0.6), rgba(6,8,12,0.4));
-  border-right:1px solid rgba(255,255,255,0.02);
-  display:flex;flex-direction:column;gap:18px
-}
+.sidebar{width:220px;padding:28px 18px;background:linear-gradient(180deg, rgba(10,14,20,0.6), rgba(6,8,12,0.4));border-right:1px solid rgba(255,255,255,0.02);display:flex;flex-direction:column;gap:18px}
 .brand{font-weight:700;font-size:20px;margin-bottom:6px}
 .menu{display:flex;flex-direction:column;gap:8px}
 .menu-btn{background:transparent;border:none;color:var(--muted);text-align:left;padding:8px 6px;border-radius:8px;cursor:pointer}
 .menu-btn:hover{background:rgba(255,255,255,0.02);color:var(--text)}
 .options{margin-top:12px;color:var(--muted);font-size:14px}
 .options label{display:block;margin:8px 0}
-.theme-toggle{margin-top:auto}
 
 /* Main */
 .main{flex:1;padding:28px;display:flex;flex-direction:column;gap:18px}
@@ -32,7 +26,7 @@ html,body{height:100%;margin:0;background: linear-gradient(180deg,#07101a 0%, #0
 .btn.outline{background:transparent;border:1px solid rgba(255,255,255,0.06)}
 .pane{background:var(--card);padding:20px;border-radius:var(--radius);box-shadow:0 6px 30px rgba(2,6,12,0.6)}
 .label{display:block;margin-bottom:8px;color:var(--muted)}
-textarea{width:100%;background:var(--glass);border:1px solid rgba(255,255,255,0.03);color:var(--text);padding:12px;border-radius:10px;font-family:inherit;font-size:14px;resize:vertical}
+textarea{width:100%;background:rgba(255,255,255,0.02);border:1px solid rgba(255,255,255,0.03);color:var(--text);padding:12px;border-radius:10px;font-family:inherit;font-size:14px;resize:vertical}
 
 /* controls */
 .controls{display:flex;gap:10px;margin-top:10px;flex-wrap:wrap}
@@ -44,7 +38,7 @@ textarea{width:100%;background:var(--glass);border:1px solid rgba(255,255,255,0.
 /* progress */
 .score-wrap{margin-top:14px}
 .progress{height:12px;background:rgba(255,255,255,0.04);border-radius:999px;overflow:hidden}
-.progress-fill{height:100%;background:linear-gradient(90deg,var(--accent),var(--accent-2));width:0%}
+.progress-fill{height:100%;background:linear-gradient(90deg,var(--accent),var(--accent-2));width:0%;transition:width .5s ease, background .3s}
 .score-legend{margin-top:8px;color:var(--muted);font-weight:600}
 
 /* footer */
