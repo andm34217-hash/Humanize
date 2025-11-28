@@ -1,7 +1,7 @@
 {
   "name": "humanizer-app",
   "version": "1.0.0",
-  "description": "Humanizer - rescrie text & face rezumate + detectare AI (Groq)",
+  "description": "Humanizer - rescriere, rezumat și detectare AI (Groq)",
   "main": "index.js",
   "scripts": {
     "start": "node server.js"
