@@ -1,15 +1,9 @@
-// Forțăm Node runtime pe Vercel (evităm Edge runtime care nu suportă groq-sdk)
+// Forțăm Node runtime (groq-sdk nu merge pe Edge)
 export const config = {
   runtime: "nodejs"
 };
 
 import Groq from "groq-sdk";
-
-/**
- * API endpoint: POST /api/groq
- * body: { text: string, mode: "rewrite" | "summary" }
- * Requires env var: GROQ_API_KEY
- */
 
 export default async function handler(req, res) {
   if (req.method !== "POST") {
@@ -29,53 +23,88 @@ export default async function handler(req, res) {
 
     const client = new Groq({ apiKey: process.env.GROQ_API_KEY });
 
-    // Model valid (actual, 2025)
-    const MODEL = "llama-3.1-8b-instant";
-
     let result;
+
     if (mode === "rewrite") {
-      result = await rewriteText(client, text, MODEL);
+      result = await rewriteText(client, text);
     } else if (mode === "summary") {
-      result = await summarizeText(client, text, MODEL);
+      result = await summarizeText(client, text);
+    } else if (mode === "detect") {
+      result = await detectAI(client, text);
     } else {
       return res.status(400).json({ error: "Invalid mode" });
     }
 
     return res.status(200).json({ result });
+
   } catch (err) {
     console.error("GROQ ERROR:", err);
-    // try to reveal useful message but avoid leaking secrets
     const message = err?.response?.data || err?.message || "Server error";
     return res.status(500).json({ error: String(message) });
   }
 }
 
-async function rewriteText(client, text, model) {
-  const prompt = `Rescrie textul următor într-un stil natural, clar și uman. Păstrează sensul, scurtează frazele greoaie. Text:\n\n${text}\n\nRescriere:\n`;
+/* ----------------- RESCRIERE ----------------- */
+async function rewriteText(client, text) {
   const response = await client.chat.completions.create({
-    model,
+    model: "llama-3.1-8b-instant",
     messages: [
-      { role: "system", content: "Rescrie textul într-un mod natural, concis și uman." },
-      { role: "user", content: prompt }
+      { role: "system", content: "Rescrie natural, clar, uman." },
+      { role: "user", content: text }
     ],
-    temperature: 0.7,
-    max_tokens: 800
+    max_tokens: 800,
+    temperature: 0.7
   });
 
-  return response.choices?.[0]?.message?.content?.trim() || "Eroare: răspuns invalid.";
+  return response.choices[0].message.content.trim();
 }
 
-async function summarizeText(client, text, model) {
-  const prompt = `Fă un rezumat pe puncte, clar și simplu pentru următorul text:\n\n${text}\n\nRezumat:\n`;
+/* ----------------- REZUMAT ----------------- */
+async function summarizeText(client, text) {
   const response = await client.chat.completions.create({
-    model,
+    model: "llama-3.1-8b-instant",
     messages: [
-      { role: "system", content: "Fă rezumate clare, pe puncte." },
-      { role: "user", content: prompt }
+      { role: "system", content: "Fă rezumate clare, concise, pe puncte." },
+      { role: "user", content: text }
     ],
-    temperature: 0.3,
-    max_tokens: 400
+    max_tokens: 400,
+    temperature: 0.3
   });
 
-  return response.choices?.[0]?.message?.content?.trim() || "Eroare: răspuns invalid.";
+  return response.choices[0].message.content.trim();
+}
+
+/* ----------------- DETECTARE AI ----------------- */
+async function detectAI(client, text) {
+  const response = await client.chat.completions.create({
+    model: "llama-3.1-70b-versatile",
+    messages: [
+      {
+        role: "system",
+        content: `
+Ești un detector AI. Analizezi dacă textul pare generat artificial.
+
+Returnează STRICT un JSON ca acesta:
+{
+  "ai_probability": 0-100,
+  "explanation": "text scurt"
+}
+`
+      },
+      { role: "user", content: text }
+    ],
+    max_tokens: 300,
+    temperature: 0.2
+  });
+
+  let content = response.choices[0].message.content.trim();
+
+  try {
+    return JSON.parse(content);
+  } catch {
+    return {
+      ai_probability: 50,
+      explanation: "Nu am putut interpreta răspunsul modelului."
+    };
+  }
 }
