@@ -13,15 +13,14 @@ export default async function handler(req, res) {
     }
 
     const client = new Groq({ apiKey: process.env.GROQ_API_KEY });
-    if (!process.env.GROQ_API_KEY) {
-      return res.status(500).json({ error: "Missing GROQ_API_KEY" });
-    }
+
+    let modelName = "llama-3.1-8b-instant"; // ✔ model corect, activ
 
     let result;
     if (mode === "rewrite") {
-      result = await rewriteText(client, text);
+      result = await rewriteText(client, text, modelName);
     } else if (mode === "summary") {
-      result = await summarizeText(client, text);
+      result = await summarizeText(client, text, modelName);
     } else {
       return res.status(400).json({ error: "Invalid mode" });
     }
@@ -33,23 +32,12 @@ export default async function handler(req, res) {
   }
 }
 
-/* ---------------------------------------- */
-/* RESCRIE TEXT                             */
-/* ---------------------------------------- */
-async function rewriteText(client, text) {
-  const prompt = `
-Rescrie următorul text într-un mod natural, uman și fluent.
-Păstrează sensul, îmbunătățește claritatea și fă-l ușor de citit.
-
-Text:
-${text}
-  `;
-
+async function rewriteText(client, text, modelName) {
   const response = await client.chat.completions.create({
-    model: "llama3-8b-8192",
+    model: modelName,
     messages: [
-      { role: "system", content: "Ești un asistent care rescrie text în mod natural și uman." },
-      { role: "user", content: prompt }
+      { role: "system", content: "Rescrie textul într-un mod natural și uman." },
+      { role: "user", content: text }
     ],
     max_tokens: 600,
     temperature: 0.7,
@@ -58,23 +46,12 @@ ${text}
   return response.choices[0]?.message?.content || "Eroare: răspuns invalid.";
 }
 
-/* ---------------------------------------- */
-/* REZUMĂ TEXT                               */
-/* ---------------------------------------- */
-async function summarizeText(client, text) {
-  const prompt = `
-Fă un rezumat scurt, clar și ușor de înțeles.
-Folosește bullet points dacă ajută.
-
-Text:
-${text}
-  `;
-
+async function summarizeText(client, text, modelName) {
   const response = await client.chat.completions.create({
-    model: "llama-3.1-8b-instant",
+    model: modelName,
     messages: [
-      { role: "system", content: "Ești un asistent care face rezumate concise." },
-      { role: "user", content: prompt }
+      { role: "system", content: "Fă un rezumat scurt și clar." },
+      { role: "user", content: text }
     ],
     max_tokens: 300,
     temperature: 0.3,
