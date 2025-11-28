@@ -1,19 +1,22 @@
+// =============================================================
+//   Forțăm Vercel să folosească Node.js Runtime (NU Edge)
+// =============================================================
 export const config = {
   runtime: "nodejs"
 };
 
 import Groq from "groq-sdk";
 
-// =====================================================================
-//   GROQ CLIENT SETUP
-// =====================================================================
+// =============================================================
+//   GROQ CLIENT
+// =============================================================
 const client = new Groq({
   apiKey: process.env.GROQ_API_KEY,
 });
 
-// =====================================================================
+// =============================================================
 //   REWRITE FUNCTION
-// =====================================================================
+// =============================================================
 async function rewriteText(text) {
   const prompt = `
 Rescrie următorul text într-un stil uman, natural, fără cuvinte pompoase,
@@ -38,9 +41,9 @@ Rescriere:
   return response.choices?.[0]?.message?.content?.trim();
 }
 
-// =====================================================================
+// =============================================================
 //   SUMMARY FUNCTION
-// =====================================================================
+// =============================================================
 async function summarizeText(text) {
   const prompt = `
 Fă un rezumat pe puncte, foarte clar și simplu, al următorului text:
@@ -63,9 +66,9 @@ Rezumat:
   return response.choices?.[0]?.message?.content?.trim();
 }
 
-// =====================================================================
+// =============================================================
 //   MAIN API HANDLER
-// =====================================================================
+// =============================================================
 export default async function handler(req, res) {
   try {
     if (req.method !== "POST") {
@@ -93,7 +96,7 @@ export default async function handler(req, res) {
   } catch (err) {
     console.error("GROQ ERROR:", err.response?.data || err.message);
     res.status(500).json({
-      error: "Groq API returned an invalid response",
+      error: "Groq API returned an error",
       details: err.response?.data || err.message
     });
   }
