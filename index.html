@@ -3,7 +3,7 @@
 <head>
   <meta charset="utf-8" />
   <meta name="viewport" content="width=device-width,initial-scale=1" />
-  <title>Humanizer • Rescrie natural</title>
+  <title>Humanizer • Rescrie & Detectează AI</title>
   <link rel="stylesheet" href="style.css">
   <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;600;700&display=swap" rel="stylesheet">
 </head>
@@ -12,11 +12,11 @@
     <aside class="sidebar">
       <div class="brand">Humanizer</div>
       <nav class="menu">
-        <button data-action="rewrite" class="menu-btn">Rescrie (student)</button>
-        <button data-action="detect" class="menu-btn">Detectează AI</button>
-        <button data-action="summary" class="menu-btn">Rezumat pe puncte</button>
-        <button data-action="simplify" class="menu-btn">Simplifică</button>
-        <button data-action="extend" class="menu-btn">Extinde</button>
+        <button class="menu-btn" data-action="rewrite">Rescrie (student)</button>
+        <button class="menu-btn" data-action="detect">Detectează AI</button>
+        <button class="menu-btn" data-action="summary">Rezumat pe puncte</button>
+        <button class="menu-btn" data-action="simplify">Simplifică</button>
+        <button class="menu-btn" data-action="extend">Extinde</button>
       </nav>
 
       <div class="options">
@@ -66,7 +66,7 @@
 
             <h4>Scor AI</h4>
             <div class="score-wrap">
-              <div id="progress" class="progress">
+              <div class="progress" aria-hidden="true">
                 <div id="progressFill" class="progress-fill" style="width:0%"></div>
               </div>
               <div class="score-legend"><span id="scorePct">0%</span></div>
