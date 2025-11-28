@@ -1,3 +1,29 @@
+
+/* ===========================
+   THEME SYSTEM
+=========================== */
+const html = document.documentElement;
+const toggleTheme = document.getElementById("toggleTheme");
+
+function applyTheme(theme) {
+  if (theme === "dark") {
+    html.classList.add("dark");
+    localStorage.setItem("theme", "dark");
+  } else {
+    html.classList.remove("dark");
+    localStorage.setItem("theme", "light");
+  }
+}
+
+// Load saved theme
+applyTheme(localStorage.getItem("theme") || "light");
+
+// Toggle theme
+toggleTheme.onclick = () => {
+  const newTheme = html.classList.contains("dark") ? "light" : "dark";
+  applyTheme(newTheme);
+};
+
 document.addEventListener("DOMContentLoaded", () => {
 
   const input = document.getElementById("inputText");
@@ -101,3 +127,4 @@ document.addEventListener("DOMContentLoaded", () => {
   });
 
 });
+
