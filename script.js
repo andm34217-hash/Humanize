@@ -60,13 +60,44 @@ document.addEventListener("DOMContentLoaded", () => {
   }
 
   btnRewrite.onclick = async () => {
-    if (!input.value.trim()) return alert("Introdu text!");
-    output.value = "Se rescrie...";
-    try {
-      const r = await callGroq("rewrite", input.value.trim());
-      output.value = r;
-    } catch (e) { output.value = "Eroare: " + e.message; }
-  };
+  if (!input.value.trim()) return alert("Introdu text!");
+  output.value = "Se rescrie textul...";
+
+  try {
+    let text = input.value.trim();
+    let finalText = "";
+    let aiScore = 100;
+
+    for (let i = 0; i < 5; i++) {
+      // 1. Rescriem textul
+      const rewritten = await callGroq("rewrite", text);
+
+      // 2. Detectăm dacă pare AI
+      const detection = await callGroq("detect", rewritten);
+      aiScore = detection.ai_probability;
+
+      // 3. Dacă e bun (sub 25%), oprim
+      if (aiScore <= 25) {
+        finalText = rewritten;
+        break;
+      }
+
+      // 4. Dacă nu, încercăm din nou cu versiunea rescrisă
+      text = rewritten;
+      finalText = rewritten;
+
+      output.value = `Încercare #${i + 1} → scor AI: ${aiScore}%... încearcă din nou...`;
+    }
+
+    // Afișăm textul final
+    output.value = finalText;
+    setScore(aiScore);
+
+  } catch (e) {
+    output.value = "Eroare: " + e.message;
+  }
+};
+
 
   btnSummary.onclick = async () => {
     if (!input.value.trim()) return alert("Introdu text!");
@@ -127,4 +158,5 @@ document.addEventListener("DOMContentLoaded", () => {
   });
 
 });
+
 
