@@ -19,10 +19,6 @@ document.addEventListener("DOMContentLoaded", () => {
   const progressFill = document.getElementById("progressFill");
   const scorePct = document.getElementById("scorePct");
 
-  // ============================
-  // UTILITATI
-  // ============================
-
   function setScore(pct) {
     pct = Math.max(0, Math.min(100, Math.round(pct)));
     progressFill.style.width = pct + "%";
@@ -37,95 +33,67 @@ document.addEventListener("DOMContentLoaded", () => {
     const r = await fetch("/api/groq", {
       method: "POST",
       headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({ text, mode }),
+      body: JSON.stringify({ text, mode })
     });
 
     const data = await r.json();
-
-    if (!r.ok) {
-      throw new Error(data.error || "Eroare server.");
-    }
-
+    if (!r.ok) throw new Error(data.error || "Eroare server.");
     return data;
   }
 
-  // ============================
-  // RESCRIE
-  // ============================
   btnRewrite.addEventListener("click", async () => {
     const text = input.value.trim();
     if (!text) return alert("Introdu textul!");
 
     output.value = "Se rescrie...";
-
     try {
       const res = await callGroq("rewrite", text);
       output.value = res.result;
-
-      if (autoSummary.checked) {
-        await doSummary(output.value);
-      }
+      if (autoSummary.checked) await doSummary(output.value);
     } catch (e) {
       showError(e.message);
     }
   });
 
-  // ============================
-  // SUMARIZARE
-  // ============================
   async function doSummary(text) {
     if (!text) return;
-
     bullets.innerHTML = "Se generează rezumat...";
-
     try {
       const res = await callGroq("summary", text);
-      const lines = res.result.split(/\n+/).filter(Boolean);
-
+      const lines = String(res.result).split(/\n+/).filter(Boolean);
       const max = shortBullets.checked ? 6 : 12;
-
-      bullets.innerHTML =
-        "<ul>" + lines.slice(0, max).map(l => `<li>${l}</li>`).join("") + "</ul>";
+      bullets.innerHTML = "<ul>" + lines.slice(0, max).map(l => `<li>${escapeHtml(l)}</li>`).join("") + "</ul>";
     } catch (e) {
       bullets.innerHTML = "Eroare la rezumat.";
     }
   }
 
-  document.querySelector("[data-action='summary']").addEventListener("click", async () => {
-    await doSummary(input.value.trim() || output.value.trim());
+  document.querySelectorAll(".menu-btn").forEach(b => {
+    b.addEventListener("click", async (ev) => {
+      const action = ev.currentTarget.dataset.action;
+      if (action === "rewrite") await btnRewrite.click();
+      else if (action === "summary") await doSummary(input.value.trim() || output.value.trim());
+      else if (action === "detect") await btnDetect.click();
+      else if (action === "simplify") alert("Funcție 'Simplifică' – în curând.");
+      else if (action === "extend") alert("Funcție 'Extinde' – în curând.");
+    });
   });
 
-  // ============================
-  // DETECTARE AI (dummy simplificat)
-  // ============================
   btnDetect.addEventListener("click", async () => {
     const text = input.value.trim();
-    if (!text) return;
-
-    output.value = "Se analizează textul...";
+    if (!text) return alert("Introdu text pentru detectare.");
+    // demo: fallback fake detection (implementare reală necesită alt endpoint)
+    output.value = "Detectare demo: această funcție nu este activă pe server.";
     setScore(50);
-
-    // Dacă dorești să implementezi detectare reală, trebuie alt backend.
-    output.value = "Detectarea AI nu este implementată încă.";
   });
 
-  // ============================
-  // APLICĂ TOT (RESCRIE + REZUMĂ)
-  // ============================
   applyAll.addEventListener("click", async () => {
     const text = input.value.trim();
     if (!text) return alert("Introdu textul!");
-
-    btnRewrite.click();
-
-    setTimeout(async () => {
-      await doSummary(output.value);
-    }, 500);
+    await btnRewrite.click();
+    setTimeout(async () => { await doSummary(output.value); }, 600);
   });
 
-  // ============================
-  // CLEAR
-  // ============================
   btnClear.addEventListener("click", () => {
     input.value = "";
     output.value = "";
@@ -133,49 +101,34 @@ document.addEventListener("DOMContentLoaded", () => {
     setScore(0);
   });
 
-  // ============================
-  // COPIERE
-  // ============================
   copyBtn.addEventListener("click", async () => {
-    await navigator.clipboard.writeText(output.value || input.value);
-    copyBtn.textContent = "Copiat!";
-    setTimeout(() => (copyBtn.textContent = "Copiază"), 1200);
+    try {
+      await navigator.clipboard.writeText(output.value || input.value);
+      copyBtn.textContent = "Copiat!";
+      setTimeout(() => copyBtn.textContent = "Copiază", 1200);
+    } catch {
+      alert("Nu pot copia.");
+    }
   });
 
-  // ============================
-  // DOWNLOAD TXT
-  // ============================
   downloadBtn.addEventListener("click", () => {
     const blob = new Blob([output.value || input.value], { type: "text/plain" });
     const url = URL.createObjectURL(blob);
-
     const a = document.createElement("a");
-    a.href = url;
-    a.download = "rezultat.txt";
-    a.click();
-
+    a.href = url; a.download = "rezultat.txt"; a.click();
     URL.revokeObjectURL(url);
   });
 
-  // ============================
-  // EXPORT PDF
-  // ============================
   exportPdf.addEventListener("click", () => {
     const w = window.open("", "_blank");
-    w.document.write(`
-      <h2>Rezultat</h2>
-      <pre>${output.value}</pre>
-      <h2>Rezumat</h2>
-      ${bullets.innerHTML}
-    `);
-    w.document.close();
-    w.print();
+    w.document.write(`<h2>Rezultat</h2><pre>${escapeHtml(output.value)}</pre><h2>Rezumat</h2>${bullets.innerHTML}`);
+    w.document.close(); w.print();
   });
 
-  // ============================
-  // PLANURI
-  // ============================
-  btnPlans.addEventListener("click", () => {
-    alert("Planurile premium vor fi disponibile în curând.");
-  });
+  btnPlans.addEventListener("click", () => alert("Planuri & Prețuri - demo (implementare viitoare)."));
+
+  function escapeHtml(s="") {
+    return String(s).replace(/[&<>"]/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[c]));
+  }
+
 });
