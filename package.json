@@ -1,0 +1,13 @@
+{
+  "name": "humanizer-app",
+  "version": "1.0.0",
+  "description": "Simple text humanizer using Groq API",
+  "main": "index.js",
+  "scripts": {
+    "start": "node server.js",
+    "dev": "node server.js"
+  },
+  "dependencies": {
+    "groq-sdk": "^0.3.0"
+  }
+}
