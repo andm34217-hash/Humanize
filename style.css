@@ -1,35 +1,306 @@
-:root{
-  --bg:#fafafa;--text:#0b1220;--card:#ffffff;--muted:#6b7280;--accent:#5b6cff;
-  --radius:12px;
-}
-.dark{--bg:#0f1720;--text:#e6eefc;--card:#0b1220;--muted:#98a0b0;--accent:#7c4dff;}
+/* =========================================================
+   TEMA B — MOV / ALBASTRU ELEGANT (HUMANIZER STYLE)
+   Compatibil cu index.html + script.js
+   ========================================================= */
 
-*{box-sizing:border-box}
-body{margin:0;font-family:Inter,system-ui,Arial;background:var(--bg);color:var(--text);transition:background .2s,color .2s}
-.app{display:flex;min-height:100vh}
-.sidebar{width:220px;padding:20px;background:var(--card);border-right:1px solid rgba(0,0,0,0.06);display:flex;flex-direction:column}
-.brand{font-weight:700;margin-bottom:10px}
-.menu-btn, .btn{display:block;padding:10px;border-radius:10px;border:1px solid rgba(0,0,0,0.06);background:transparent;cursor:pointer;margin-bottom:8px}
-.menu-btn:hover, .btn:hover{opacity:0.95}
-.main{flex:1;padding:20px;display:flex;flex-direction:column;gap:16px}
-header h1{margin:0;font-size:20px}
-.controls textarea{width:100%;height:140px;padding:12px;border-radius:10px;border:1px solid rgba(0,0,0,0.08);background:var(--card);resize:vertical}
-.row{display:flex;gap:10px;flex-wrap:wrap;margin-top:10px}
-.output{display:flex;gap:20px;flex-wrap:wrap}
-.left{flex:1;min-width:280px}
-.right{width:320px;min-width:220px}
-textarea[readonly]{min-height:200px;width:100%;padding:12px;border-radius:10px;border:1px solid rgba(0,0,0,0.06);background:var(--card)}
-.progress{height:12px;background:rgba(0,0,0,0.06);border-radius:999px;overflow:hidden;margin-bottom:6px}
-#progressFill{height:100%;width:0;background:linear-gradient(90deg,var(--accent),#7c4dff)}
-.math-panel{margin-top:18px;background:var(--card);padding:12px;border-radius:12px;border:1px solid rgba(0,0,0,0.04)}
-.math-result{margin-top:12px;background:rgba(0,0,0,0.02);padding:12px;border-radius:8px;max-height:420px;overflow:auto}
-.math-step{margin-bottom:12px;padding:10px;border-left:4px solid var(--accent);background:linear-gradient(90deg, rgba(255,255,255,0.01), transparent)}
-.hidden{display:none}
-footer{margin-top:auto;color:var(--muted);font-size:13px}
-.small{padding:6px;font-size:13px}
-.primary{background:var(--accent);color:white;border:none}
-@media (max-width:900px){
-  .sidebar{display:none}
-  .right{display:none}
-  .output{flex-direction:column}
+/* Light mode */
+:root {
+  --bg: #f7f8ff;
+  --text: #1c1e29;
+  --card: #ffffff;
+  --muted: #677089;
+  --accent: #6a5cff;
+  --accent2: #8570ff;
+  --border: rgba(0,0,0,0.07);
+
+  --radius: 12px;
+  --shadow: 0 3px 12px rgba(0,0,0,0.08);
+}
+
+/* Dark mode */
+.dark {
+  --bg: #10121b;
+  --text: #eaeaff;
+  --card: #181a25;
+  --muted: #9aa3c3;
+  --accent: #8e7cff;
+  --accent2: #b49aff;
+  --border: rgba(255,255,255,0.06);
+
+  --shadow: 0 4px 16px rgba(0,0,0,0.35);
+}
+
+* {
+  box-sizing: border-box;
+}
+
+body {
+  margin: 0;
+  font-family: Inter, system-ui, Arial;
+  background: var(--bg);
+  color: var(--text);
+  transition: background .25s, color .25s;
+}
+
+/* =========================================================
+   LAYOUT STRUCTURE
+   ========================================================= */
+.app {
+  display: flex;
+  min-height: 100vh;
+}
+
+.sidebar {
+  width: 240px;
+  padding: 22px;
+  background: var(--card);
+  border-right: 1px solid var(--border);
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+  box-shadow: var(--shadow);
+  position: relative;
+}
+
+.brand {
+  font-size: 22px;
+  font-weight: 700;
+  background: linear-gradient(90deg, var(--accent), var(--accent2));
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+}
+
+.menu-btn {
+  padding: 10px 12px;
+  font-size: 14px;
+  border-radius: var(--radius);
+  background: var(--card);
+  border: 1px solid var(--border);
+  cursor: pointer;
+  color: var(--text);
+  transition: 0.15s;
+}
+
+.menu-btn:hover {
+  background: var(--accent);
+  color: white;
+  transform: translateY(-1px);
+  box-shadow: 0 3px 10px rgba(0,0,0,0.15);
+}
+
+.small {
+  padding: 8px 12px;
+  font-size: 13px;
+}
+
+.spacer {
+  flex: 1;
+}
+
+/* =========================================================
+   MAIN CONTENT
+   ========================================================= */
+.main {
+  flex: 1;
+  padding: 26px;
+  display: flex;
+  flex-direction: column;
+  gap: 24px;
+}
+
+header h1 {
+  margin: 0;
+  font-size: 22px;
+  font-weight: 600;
+  color: var(--text);
+}
+
+/* =========================================================
+   TEXT INPUT + BUTTONS
+   ========================================================= */
+
+.controls textarea {
+  width: 100%;
+  height: 160px;
+  padding: 14px;
+  border-radius: var(--radius);
+  border: 1px solid var(--border);
+  background: var(--card);
+  color: var(--text);
+  resize: vertical;
+  font-size: 15px;
+  box-shadow: var(--shadow);
+}
+
+.row {
+  display: flex;
+  gap: 10px;
+  flex-wrap: wrap;
+  margin-top: 10px;
+}
+
+.btn {
+  padding: 10px 16px;
+  border-radius: var(--radius);
+  border: none;
+  background: var(--card);
+  color: var(--text);
+  border: 1px solid var(--border);
+  cursor: pointer;
+  font-size: 14px;
+  transition: 0.2s;
+}
+
+.btn:hover {
+  background: var(--accent);
+  color: white;
+  transform: translateY(-1px);
+  box-shadow: var(--shadow);
+}
+
+.primary {
+  background: linear-gradient(90deg, var(--accent), var(--accent2));
+  color: white;
+  border: none;
+}
+.primary:hover {
+  opacity: 0.95;
+}
+
+/* =========================================================
+   OUTPUT SECTION
+   ========================================================= */
+.output {
+  display: flex;
+  gap: 26px;
+  flex-wrap: wrap;
+}
+
+.left {
+  flex: 1;
+  min-width: 320px;
+}
+
+.left textarea {
+  width: 100%;
+  min-height: 240px;
+  padding: 14px;
+  border-radius: var(--radius);
+  border: 1px solid var(--border);
+  background: var(--card);
+  color: var(--text);
+  resize: vertical;
+  box-shadow: var(--shadow);
+}
+
+.right {
+  width: 330px;
+  min-width: 250px;
+  background: var(--card);
+  border-radius: var(--radius);
+  padding: 18px;
+  box-shadow: var(--shadow);
+}
+
+.right h4 {
+  margin-top: 0;
+  font-size: 16px;
+  font-weight: 600;
+}
+
+/* AI Score bar */
+.progress {
+  width: 100%;
+  height: 12px;
+  border-radius: 50px;
+  background: #d1d4e8;
+  overflow: hidden;
+}
+.dark .progress {
+  background: #2b2e44;
+}
+
+#progressFill {
+  height: 100%;
+  width: 0%;
+  background: linear-gradient(90deg, var(--accent), var(--accent2));
+  transition: width .25s;
+}
+
+#scorePct {
+  margin-top: 6px;
+  font-weight: 600;
+}
+
+/* =========================================================
+   MATH PANEL
+   ========================================================= */
+.math-panel {
+  background: var(--card);
+  padding: 22px;
+  border-radius: var(--radius);
+  box-shadow: var(--shadow);
+  border: 1px solid var(--border);
+}
+
+.math-panel.hidden {
+  display: none;
+}
+
+.math-toolbar {
+  margin-bottom: 12px;
+}
+
+.math-result {
+  margin-top: 16px;
+  padding: 14px;
+  background: rgba(0,0,0,0.03);
+  border-radius: var(--radius);
+  max-height: 420px;
+  overflow: auto;
+  border: 1px solid var(--border);
+}
+
+.dark .math-result {
+  background: rgba(255,255,255,0.05);
+}
+
+.math-step {
+  padding: 12px;
+  border-left: 4px solid var(--accent);
+  margin-bottom: 14px;
+  background: rgba(0,0,0,0.02);
+  border-radius: 8px;
+}
+.dark .math-step {
+  background: rgba(255,255,255,0.05);
+}
+
+/* =========================================================
+   FOOTER
+   ========================================================= */
+footer {
+  margin-top: auto;
+  font-size: 13px;
+  color: var(--muted);
+  text-align: center;
+  padding: 12px;
+}
+
+/* =========================================================
+   RESPONSIVE
+   ========================================================= */
+@media (max-width: 900px) {
+  .sidebar {
+    display: none;
+  }
+
+  .right {
+    width: 100%;
+    order: -1;
+  }
+
+  .output {
+    flex-direction: column;
+  }
 }
