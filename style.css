@@ -303,4 +303,12 @@ footer {
   .output {
     flex-direction: column;
   }
+/* Small styles for fraction widget and math preview */
+.math-toolbar .frac-widget { display:flex; gap:8px; align-items:center; margin-top:8px; }
+.math-toolbar .frac-input { padding:8px; border-radius:8px; border:1px solid rgba(0,0,0,0.08); width:80px; background:var(--card); color:var(--text); }
+.math-preview { min-width:80px; min-height:28px; display:flex; align-items:center; justify-content:center; }
+.frac-preview { min-width:80px; min-height:34px; display:flex; align-items:center; justify-content:center; }
+
 }
+
+
