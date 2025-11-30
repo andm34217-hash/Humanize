@@ -1,171 +1,148 @@
 document.addEventListener("DOMContentLoaded", () => {
-
-  /* =============================
-      THEME SYSTEM
-  ============================== */
-
+  // theme
   const html = document.documentElement;
   const toggleTheme = document.getElementById("toggleTheme");
+  function applyTheme(t){ if(t==="dark"){html.classList.add("dark");localStorage.setItem("theme","dark")} else {html.classList.remove("dark");localStorage.setItem("theme","light")}}
+  applyTheme(localStorage.getItem("theme")||"light");
+  toggleTheme && (toggleTheme.onclick = ()=> applyTheme(html.classList.contains("dark")?"light":"dark"));
 
-  function applyTheme(theme) {
-    if (theme === "dark") {
-      html.classList.add("dark");
-      localStorage.setItem("theme", "dark");
-    } else {
-      html.classList.remove("dark");
-      localStorage.setItem("theme", "light");
-    }
-  }
-
-  applyTheme(localStorage.getItem("theme") || "light");
-
-  toggleTheme.onclick = () => {
-    const newTheme = html.classList.contains("dark") ? "light" : "dark";
-    applyTheme(newTheme);
-  };
-
-  /* =============================
-      ELEMENTS
-  ============================== */
+  // elements
   const input = document.getElementById("inputText");
   const output = document.getElementById("outputText");
   const bullets = document.getElementById("bullets");
-
-  const btnDetect = document.getElementById("btnDetect");
   const btnRewrite = document.getElementById("btnRewrite");
   const btnSummary = document.getElementById("btnSummary");
+  const btnDetect = document.getElementById("btnDetect");
   const btnClear = document.getElementById("btnClear");
-
   const copyBtn = document.getElementById("copyBtn");
   const downloadBtn = document.getElementById("downloadBtn");
-
   const progressFill = document.getElementById("progressFill");
   const scorePct = document.getElementById("scorePct");
+  const menuBtns = document.querySelectorAll(".menu-btn");
 
-  function setScore(pct) {
-    pct = Math.max(0, Math.min(100, pct));
-    progressFill.style.width = pct + "%";
-    scorePct.textContent = pct + "%";
+  function setScore(p){ p=Math.max(0,Math.min(100,Math.round(p))); progressFill.style.width = p+"%"; scorePct.textContent = p+"%"; }
+
+  async function apiCall(path, body){
+    const r = await fetch(path,{method:"POST",headers:{"Content-Type":"application/json"},body:JSON.stringify(body)});
+    const json = await r.json();
+    if (!r.ok) throw new Error(json.error || JSON.stringify(json));
+    return json.result;
   }
 
-  async function callGroq(mode, text) {
-    const r = await fetch("/api/groq", {
-      method: "POST",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({ text, mode })
-    });
+  async function callGroq(mode, text){ return apiCall("/api/groq",{mode,text}); }
+  async function callStudent(mode, text, options){ return apiCall("/api/student",{mode,text,options}); }
+  async function callMath(problem){ return apiCall("/api/math",{problem}); }
 
-    const data = await r.json();
-    if (!r.ok) throw new Error(data.error);
-    return data.result;
-  }
-
-  /* =============================
-      AI SAFE REWRITE
-  ============================== */
-  btnRewrite.onclick = async () => {
+  // rewrite (AI-safe loop to <=25)
+  btnRewrite.onclick = async ()=>{
     if (!input.value.trim()) return alert("Introdu text!");
-    output.value = "Se rescrie textul...";
-
+    output.value = "Se rescrie...";
     try {
       let text = input.value.trim();
-      let finalText = "";
+      let finalText = text;
       let aiScore = 100;
-
-      for (let i = 0; i < 5; i++) {
+      for (let i=0;i<5;i++){
         const rewritten = await callGroq("rewrite", text);
         const detection = await callGroq("detect", rewritten);
         aiScore = detection.ai_probability;
-
-        if (aiScore <= 25) {
-          finalText = rewritten;
-          break;
-        }
-
-        text = rewritten;
         finalText = rewritten;
-        output.value = `Încercare ${i + 1}/5 → scor AI: ${aiScore}%...`;
+        output.value = `Încercare ${i+1}/5 — scor AI: ${aiScore}%`;
+        if (aiScore <= 25) break;
+        text = rewritten;
       }
-
       output.value = finalText;
       setScore(aiScore);
-
-    } catch (e) {
+    } catch(e){
       output.value = "Eroare: " + e.message;
     }
   };
 
-  /* =============================
-      SUMMARY
-  ============================== */
-  btnSummary.onclick = async () => {
+  // summary
+  btnSummary.onclick = async ()=>{
     if (!input.value.trim()) return alert("Introdu text!");
-    bullets.innerHTML = "Se generează rezumat...";
-
+    bullets.innerHTML = "Se generează...";
     try {
       const r = await callGroq("summary", input.value.trim());
-      bullets.innerHTML =
-        "<ul>" +
-        r.split("\n").filter(x => x.trim()).map(x => `<li>${x}</li>`).join("") +
-        "</ul>";
-    } catch (e) {
-      bullets.innerHTML = "Eroare la rezumat.";
-    }
+      bullets.innerHTML = "<ul>"+ r.split(/\n+/).filter(Boolean).map(l=>`<li>${l}</li>`).join("") + "</ul>";
+    } catch(e){ bullets.innerHTML = "Eroare la rezumat."; }
   };
 
-  /* =============================
-      DETECT AI
-  ============================== */
-  btnDetect.onclick = async () => {
+  // detect
+  btnDetect.onclick = async ()=>{
     if (!input.value.trim()) return alert("Introdu text!");
     output.value = "Se detectează AI...";
-
     try {
       const r = await callGroq("detect", input.value.trim());
       setScore(r.ai_probability);
-      output.value = "Explicație detectare AI:\n\n" + r.explanation;
-    } catch (e) {
+      output.value = "Explicație:\n\n" + r.explanation;
+    } catch(e){
       output.value = "Eroare: " + e.message;
       setScore(0);
     }
   };
 
-  /* =============================
-      TOOLS
-  ============================== */
-  btnClear.onclick = () => {
-    input.value = "";
-    output.value = "";
-    bullets.innerHTML = "Nu există rezumat.";
-    setScore(0);
+  btnClear.onclick = ()=>{ input.value=""; output.value=""; bullets.innerHTML="—"; setScore(0) };
+
+  copyBtn.onclick = async ()=>{ await navigator.clipboard.writeText(output.value||""); copyBtn.textContent="Copiat!"; setTimeout(()=>copyBtn.textContent="Copiază",1200); };
+  downloadBtn.onclick = ()=>{ const blob=new Blob([output.value||""],{type:"text/plain"}); const u=URL.createObjectURL(blob); const a=document.createElement("a"); a.href=u; a.download="rezultat.txt"; a.click(); URL.revokeObjectURL(u); };
+
+  // menu buttons
+  menuBtns.forEach(btn=> btn.addEventListener("click",()=> {
+    const action = btn.dataset.action;
+    if (action === "rewrite") btnRewrite.click();
+    if (action === "summary") btnSummary.click();
+    if (action === "detect") btnDetect.click();
+    if (action === "essay") {
+      const text = input.value.trim() || prompt("Despre ce vrei eseul?");
+      if (!text) return;
+      callStudent("essay", text, { tone: "academic" }).then(r=> output.value = r).catch(e=> output.value = "Eroare: "+e.message);
+    }
+    if (action === "explain") {
+      const text = input.value.trim() || prompt("Ce vrei explicat?");
+      if (!text) return;
+      callStudent("explain", text, { level: "student" }).then(r=> output.value = r).catch(e=> output.value = "Eroare: "+e.message);
+    }
+    if (action === "translate") {
+      const text = input.value.trim() || prompt("Text de tradus?");
+      if (!text) return;
+      callStudent("translate", text, { to: "en" }).then(r=> output.value = r).catch(e=> output.value = "Eroare: "+e.message);
+    }
+  }));
+
+  // math panel
+  const btnMathToggle = document.getElementById("btnMathToggle");
+  const mathPanel = document.getElementById("mathPanel");
+  const solveMath = document.getElementById("solveMath");
+  const mathInput = document.getElementById("mathInput");
+  const mathResult = document.getElementById("mathResult");
+  const copyMath = document.getElementById("copyMath");
+
+  btnMathToggle.onclick = ()=> mathPanel.classList.toggle("hidden");
+
+  function renderMathResult(result){
+    mathResult.innerHTML = "";
+    const header = document.createElement("div"); header.innerHTML = `<strong>Problem:</strong> ${result.problem||""}`; mathResult.appendChild(header);
+    (result.steps||[]).forEach((s,i)=>{
+      const div = document.createElement("div"); div.className="math-step";
+      div.innerHTML = `<strong>Pas ${i+1}: ${s.step||""}</strong><div>${s.explanation||""}</div>`;
+      if (s.latex) { const ld = document.createElement("div"); ld.innerHTML = `$$${s.latex}$$`; div.appendChild(ld); }
+      mathResult.appendChild(div);
+    });
+    const fa = document.createElement("div"); fa.innerHTML = `<strong>Răspuns final:</strong> ${result.final_answer?.text||""}`; if (result.final_answer?.latex){ const l=document.createElement("div"); l.innerHTML=`$$${result.final_answer.latex}$$`; fa.appendChild(l); } mathResult.appendChild(fa);
+    if (window.renderMathInElement) try{ renderMathInElement(mathResult, {delimiters:[{left:'$$',right:'$$',display:true},{left:'$',right:'$',display:false}]}); }catch(e){console.warn(e)}
+  }
+
+  solveMath.onclick = async ()=>{
+    const problem = mathInput.value.trim(); if(!problem) return alert("Scrie problema.");
+    mathResult.innerHTML = "Se calculează...";
+    try{
+      const r = await callMath(problem);
+      renderMathResult(r);
+    }catch(e){
+      mathResult.innerHTML = "Eroare: "+e.message;
+    }
   };
 
-  copyBtn.onclick = async () => {
-    await navigator.clipboard.writeText(output.value);
-    copyBtn.textContent = "Copiat!";
-    setTimeout(() => (copyBtn.textContent = "Copiază"), 1500);
-  };
-
-  downloadBtn.onclick = () => {
-    const blob = new Blob([output.value], { type: "text/plain" });
-    const url = URL.createObjectURL(blob);
-    const a = document.createElement("a");
-    a.href = url;
-    a.download = "rezultat.txt";
-    a.click();
-    URL.revokeObjectURL(url);
-  };
-
-  /* =============================
-      Sidebar buttons
-  ============================== */
-  document.querySelectorAll(".menu-btn").forEach(btn => {
-    btn.onclick = () => {
-      const action = btn.dataset.action;
-      if (action === "rewrite") btnRewrite.click();
-      if (action === "summary") btnSummary.click();
-      if (action === "detect") btnDetect.click();
-    };
-  });
+  copyMath.onclick = ()=>{ navigator.clipboard.writeText(mathResult.innerText||""); copyMath.textContent="Copiat!"; setTimeout(()=>copyMath.textContent="Copiază rezultat",1000); };
 
 });
