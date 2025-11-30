@@ -1,36 +1,23 @@
-// Force Node runtime on Vercel
 export const config = { runtime: "nodejs" };
-
 import Groq from "groq-sdk";
 
 export default async function handler(req, res) {
-  if (req.method !== "POST") {
+  if (req.method !== "POST")
     return res.status(405).json({ error: "Method not allowed" });
-  }
 
   try {
     const { text, mode } = req.body;
 
-    if (!text || !mode) {
+    if (!text || !mode)
       return res.status(400).json({ error: "Missing text or mode" });
-    }
-
-    if (!process.env.GROQ_API_KEY) {
-      return res.status(500).json({ error: "Missing GROQ_API_KEY" });
-    }
 
     const client = new Groq({ apiKey: process.env.GROQ_API_KEY });
 
     switch (mode) {
 
-      case "rewrite":
+      case "rewrite_safe":
         return res.status(200).json({
-          result: await rewriteText(client, text)
-        });
-
-      case "summary":
-        return res.status(200).json({
-          result: await summarizeText(client, text)
+          result: await rewriteSafe(client, text)
         });
 
       case "detect":
@@ -48,99 +35,72 @@ export default async function handler(req, res) {
   }
 }
 
-/* --------------------------------------------
-   MODEL UNIC DISPONIBIL ÎN CONTUL TĂU GROQ
--------------------------------------------- */
-const MODEL = "openai/gpt-oss-20b";
+/* ================================================================== */
+/* ----------------- RESCRIERE AUTOMATĂ SUB 25% --------------------- */
+/* ================================================================== */
 
-/* ----------------- RESCRIE ----------------- */
-async function rewriteText(client, text) {
-  const prompt = `
-Rescrie textul următor într-un mod 100% uman, natural și sub 25% probabilitate AI.
-Păstrează sensul, claritatea și tonul conversațional.
+async function rewriteSafe(client, text) {
+  let rewritten = text;
+  let score = 100;
 
-Text original:
-${text}
+  for (let i = 0; i < 3; i++) {
 
-Rescriere optimizată (umanizată):
-`;
+    // 1) Rescriere naturală
+    const r = await client.chat.completions.create({
+      model: "llama-3.1-8b-instant",
+      messages: [
+        {
+          role: "system",
+          content:
+            "Rescrie textul într-un stil natural, ușor imperfect, cu expresii umane și variații reale. Evită tonul academic și propozițiile foarte corecte."
+        },
+        { role: "user", content: text }
+      ],
+      temperature: 0.8
+    });
 
-  const r = await client.chat.completions.create({
-    model: MODEL,
-    messages: [
-      { role: "system", content: "Rescriere umană, naturală, sub 25% AI probability." },
-      { role: "user", content: prompt }
-    ],
-    temperature: 0.7,
-    max_tokens: 800
-  });
+    rewritten = r.choices[0].message.content.trim();
 
-  return r.choices[0].message.content.trim();
+    // 2) Detectare AI
+    const detect = await detectAI(client, rewritten);
+    score = detect.ai_probability;
+
+    if (score <= 25) break; // STOP dacă e ok
+  }
+
+  return {
+    rewritten,
+    ai_probability: score
+  };
 }
 
-/* ----------------- REZUMAT ----------------- */
-async function summarizeText(client, text) {
-  const prompt = `
-Creează un rezumat scurt, clar, pe puncte, al textului următor:
+/* ================================================================== */
+/* ----------------------- DETECTARE AI ------------------------------ */
+/* ================================================================== */
 
-${text}
-
-Rezumat:
-`;
-
-  const r = await client.chat.completions.create({
-    model: MODEL,
-    messages: [
-      { role: "system", content: "Fă rezumate clare și concise." },
-      { role: "user", content: prompt }
-    ],
-    temperature: 0.3,
-    max_tokens: 400
-  });
-
-  return r.choices[0].message.content.trim();
-}
-
-/* ----------------- DETECTARE AI ----------------- */
 async function detectAI(client, text) {
-  const prompt = `
-Analizează textul și întoarce STRICT un JSON valid:
-
-{
-  "ai_probability": number intre 0 și 100,
-  "explanation": "explicatie scurtă"
-}
-
-Text:
-${text}
-
-JSON:
-`;
-
   const r = await client.chat.completions.create({
-    model: MODEL,
+    model: "llama-3.1-8b-instant",
     messages: [
-      { role: "system", content: "Evaluează probabilitatea ca textul să fie generat de AI." },
-      { role: "user", content: prompt }
+      {
+        role: "system",
+        content:
+          `Analizează textul și returnează STRICT acest JSON:
+{
+  "ai_probability": number,
+  "explanation": "text scurt"
+}`
+      },
+      { role: "user", content: text }
     ],
-    temperature: 0.1,
-    max_tokens: 200
+    temperature: 0.2
   });
 
-  const raw = r.choices[0].message.content.trim();
+  let raw = r.choices[0].message.content.trim();
 
   try {
-    const parsed = JSON.parse(raw);
-
-    return {
-      ai_probability: Math.max(0, Math.min(100, parsed.ai_probability)),
-      explanation: parsed.explanation || "Fără explicație."
-    };
-
-  } catch (e) {
-    return {
-      ai_probability: 50,
-      explanation: "Răspunsul nu a fost JSON, dar modelul a returnat text brut."
-    };
+    return JSON.parse(raw);
+  } catch {
+    return { ai_probability: 50, explanation: "nu s-a putut analiza" };
   }
 }
