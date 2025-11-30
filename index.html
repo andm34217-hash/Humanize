@@ -1,77 +1,75 @@
 <!doctype html>
 <html lang="ro">
 <head>
-  <meta charset="utf-8" />
-  <meta name="viewport" content="width=device-width,initial-scale=1" />
-  <title>Humanizer</title>
-  <link rel="stylesheet" href="style.css">
-  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;600;700&display=swap" rel="stylesheet">
+<meta charset="utf-8" />
+<meta name="viewport" content="width=device-width,initial-scale=1" />
+<title>Humanizer • StudentHub</title>
+<link rel="stylesheet" href="style.css">
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;600;700&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/katex@0.16.8/dist/katex.min.css">
 </head>
 <body>
-  <div id="app" class="page">
-    <aside class="sidebar">
-      <div class="brand">Humanizer</div>
+<div class="app">
+  <aside class="sidebar">
+    <div class="brand">Humanizer</div>
+    <nav>
+      <button class="menu-btn" data-action="rewrite">Rescrie</button>
+      <button class="menu-btn" data-action="summary">Rezumat</button>
+      <button class="menu-btn" data-action="detect">Detectează AI</button>
+      <hr>
+      <button class="menu-btn" data-action="essay">Generează Eseu</button>
+      <button class="menu-btn" data-action="explain">Explică</button>
+      <button class="menu-btn" data-action="translate">Translate</button>
+      <button id="btnMathToggle" class="menu-btn">Calculator Matematic</button>
+    </nav>
+    <div class="spacer"></div>
+    <button id="toggleTheme" class="small">🌗 Theme</button>
+  </aside>
 
-      <nav class="menu">
-        <button data-action="rewrite" class="menu-btn">Rescrie textul</button>
-        <button data-action="detect" class="menu-btn">Detectează AI</button>
-        <button data-action="summary" class="menu-btn">Rezumat pe puncte</button>
-      </nav>
+  <main class="main">
+    <header><h1>Humanizer • StudentHub</h1></header>
 
-      <div class="theme-toggle">
-        <button id="toggleTheme" class="btn small">🌗 Theme</button>
+    <section class="controls">
+      <textarea id="inputText" placeholder="Introdu textul sau problema..."></textarea>
+      <div class="row">
+        <button id="btnRewrite">Rescrie inteligent</button>
+        <button id="btnSummary">Rezumat</button>
+        <button id="btnDetect">Detectează AI</button>
+        <button id="btnClear">Șterge</button>
       </div>
-    </aside>
+    </section>
 
-    <main class="main">
-      <header class="top">
-        <h1>Humanizer</h1>
-      </header>
+    <section class="output">
+      <div class="left">
+        <h3>Rezultat</h3>
+        <textarea id="outputText" readonly></textarea>
+        <div class="row"><button id="copyBtn">Copiază</button><button id="downloadBtn">Descarcă</button></div>
+      </div>
+      <aside class="right">
+        <h4>Rezumat</h4>
+        <div id="bullets">—</div>
+        <h4>Scor AI</h4>
+        <div class="progress"><div id="progressFill"></div></div>
+        <div id="scorePct">0%</div>
+      </aside>
+    </section>
 
-      <section class="pane">
-        <label class="label">Text de intrare:</label>
-        <textarea id="inputText" placeholder="Introdu textul aici..." rows="8"></textarea>
+    <section id="mathPanel" class="math-panel hidden">
+      <h3>Calculator Matematic Avansat</h3>
+      <textarea id="mathInput" placeholder="Introduce problema (ex: ∫ x^2 dx)"></textarea>
+      <div class="row">
+        <button id="solveMath">Rezolvă pas cu pas</button>
+        <button id="copyMath">Copiază rezultat</button>
+      </div>
+      <div id="mathResult" class="math-result"></div>
+    </section>
 
-        <div class="controls">
-          <button id="btnDetect" class="btn">Detectează AI</button>
-          <button id="btnRewrite" class="btn">Rescrie inteligent</button>
-          <button id="btnSummary" class="btn">Rezumat</button>
-          <button id="btnClear" class="btn">Șterge</button>
-        </div>
+    <footer>© Humanizer • StudentHub</footer>
+  </main>
+</div>
 
-        <div class="result-grid">
-          <div class="result-col">
-            <h3>Rezultat</h3>
-            <textarea id="outputText" rows="10" readonly></textarea>
-            <div class="result-actions">
-              <button id="copyBtn" class="btn">Copiază</button>
-              <button id="downloadBtn" class="btn">Descarcă</button>
-            </div>
-          </div>
-
-          <aside class="side-col">
-            <h4>Rezumat</h4>
-            <div id="bullets" class="bullets">Nu există rezumat.</div>
-
-            <h4>Scor AI</h4>
-            <div class="score-wrap">
-              <div id="progress" class="progress">
-                <div id="progressFill" class="progress-fill"></div>
-              </div>
-              <div class="score-legend"><span id="scorePct">0%</span></div>
-            </div>
-          </aside>
-        </div>
-      </section>
-
-      <footer class="footer">
-        <small>© Humanizer • 2025</small>
-        <div id="status" class="status"></div>
-      </footer>
-    </main>
-  </div>
-
-  <script src="script.js" defer></script>
+<script src="https://cdn.jsdelivr.net/npm/katex@0.16.8/dist/katex.min.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/katex@0.16.8/dist/contrib/auto-render.min.js" defer></script>
+<script src="script.js" defer></script>
 </body>
 </html>
-
